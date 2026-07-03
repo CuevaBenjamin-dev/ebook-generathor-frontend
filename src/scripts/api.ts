@@ -4,11 +4,13 @@ import type {
   EbookPreviewResponse,
   GenerationJobStatus,
   ProposedModule,
-  SettingsStatus
+  SettingsStatus,
 } from "./types";
 
 const API_BASE_URL = normalizeApiBaseUrl(
-  import.meta.env.PUBLIC_API_BASE_URL || "http://localhost:8000/api/v1"
+  import.meta.env.PUBLIC_API_BASE_URL ||
+    "http://localhost:8000/api/v1" ||
+    "https://legwork-sulfide-slacking.ngrok-free.dev/api/v1",
 );
 
 function normalizeApiBaseUrl(value: string): string {
@@ -27,9 +29,10 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const response = await fetch(apiUrl(path), {
     headers: {
       "Content-Type": "application/json",
-      ...(options.headers ?? {})
+      "ngrok-skip-browser-warning": "true",
+      ...(options.headers ?? {}),
     },
-    ...options
+    ...options,
   });
 
   if (!response.ok) {
@@ -63,18 +66,22 @@ export function proposeModules(payload: {
 }): Promise<{ modules: ProposedModule[]; total_pages_assigned: number }> {
   return request("/modules/propose", {
     method: "POST",
-    body: JSON.stringify(payload)
+    body: JSON.stringify(payload),
   });
 }
 
-export function createEbook(payload: EbookCreateInput): Promise<{ ebook_id: string; status: string }> {
+export function createEbook(
+  payload: EbookCreateInput,
+): Promise<{ ebook_id: string; status: string }> {
   return request("/ebooks", {
     method: "POST",
-    body: JSON.stringify(payload)
+    body: JSON.stringify(payload),
   });
 }
 
-export function generateEbook(ebookId: string): Promise<{ job_id: string; ebook_id: string; status: string }> {
+export function generateEbook(
+  ebookId: string,
+): Promise<{ job_id: string; ebook_id: string; status: string }> {
   return request(`/ebooks/${ebookId}/generate`, { method: "POST" });
 }
 
