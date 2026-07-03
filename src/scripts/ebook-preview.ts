@@ -1,4 +1,4 @@
-import { getEpubUrl, getPdfUrl, getPreview } from "./api";
+import { downloadEpub, downloadPdf, getPreview } from "./api";
 import type { EbookPreviewPage, EbookPreviewResponse } from "./types";
 
 const app = document.querySelector<HTMLElement>("#preview-app");
@@ -28,10 +28,10 @@ async function initPreview(): Promise<void> {
   try {
     preview = await getPreview(ebookId);
     pages = preview.modules.flatMap((module) =>
-      module.pages.map((page) => ({ ...page, moduleTitle: module.title }))
+      module.pages.map((page) => ({ ...page, moduleTitle: module.title })),
     );
-    if (pdfLink) pdfLink.href = getPdfUrl(ebookId);
-    if (epubLink) epubLink.href = getEpubUrl(ebookId);
+    if (pdfLink) pdfLink.href = "#";
+    if (epubLink) epubLink.href = "#";
     renderModules();
     renderPageOptions();
     renderPage(0);
@@ -48,7 +48,7 @@ function renderModules(): void {
         <button class="preview-module-button" type="button" data-page="${firstPageIndexForModule(module.id)}">
           ${module.position}. ${escapeHtml(module.title)}
         </button>
-      `
+      `,
     )
     .join("");
 
@@ -73,7 +73,10 @@ function firstPageIndexForModule(moduleId: string): number {
 function renderPageOptions(): void {
   if (!pageSelect) return;
   pageSelect.innerHTML = pages
-    .map((page, index) => `<option value="${index}">Página ${page.page_number}: ${escapeHtml(page.title)}</option>`)
+    .map(
+      (page, index) =>
+        `<option value="${index}">Página ${page.page_number}: ${escapeHtml(page.title)}</option>`,
+    )
     .join("");
 }
 
@@ -97,10 +100,31 @@ function renderPage(index: number): void {
 
 prevButton?.addEventListener("click", () => renderPage(currentIndex - 1));
 nextButton?.addEventListener("click", () => renderPage(currentIndex + 1));
-pageSelect?.addEventListener("change", () => renderPage(Number(pageSelect.value)));
+pageSelect?.addEventListener("change", () =>
+  renderPage(Number(pageSelect.value)),
+);
 zoomControl?.addEventListener("input", () => {
   if (!reader || !zoomControl) return;
   reader.style.fontSize = `${Number(zoomControl.value)}%`;
+});
+pdfLink?.addEventListener("click", async (event) => {
+  event.preventDefault();
+
+  try {
+    await downloadPdf(ebookId);
+  } catch (error) {
+    alert(errorMessage(error));
+  }
+});
+
+epubLink?.addEventListener("click", async (event) => {
+  event.preventDefault();
+
+  try {
+    await downloadEpub(ebookId);
+  } catch (error) {
+    alert(errorMessage(error));
+  }
 });
 
 function markdownToHtml(markdown: string): string {
@@ -129,8 +153,10 @@ function markdownToHtml(markdown: string): string {
       output.push("</ul>");
       inList = false;
     }
-    if (line.startsWith("### ")) output.push(`<h3>${escapeHtml(line.slice(4))}</h3>`);
-    else if (line.startsWith("## ")) output.push(`<h3>${escapeHtml(line.slice(3))}</h3>`);
+    if (line.startsWith("### "))
+      output.push(`<h3>${escapeHtml(line.slice(4))}</h3>`);
+    else if (line.startsWith("## "))
+      output.push(`<h3>${escapeHtml(line.slice(3))}</h3>`);
     else output.push(`<p>${escapeHtml(line.replace(/^#\s+/, ""))}</p>`);
   }
 
@@ -147,7 +173,9 @@ function escapeHtml(value: string): string {
 }
 
 function errorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : "Ocurrió un error inesperado.";
+  return error instanceof Error
+    ? error.message
+    : "Ocurrió un error inesperado.";
 }
 
 void initPreview();
