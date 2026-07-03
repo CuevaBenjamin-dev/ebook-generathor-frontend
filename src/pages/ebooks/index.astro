@@ -86,7 +86,7 @@ import MainLayout from "../../layouts/MainLayout.astro";
             <td>${new Date(ebook.created_at).toLocaleString()}</td>
             <td>
               <div class="table-actions">
-                <a class="button button-secondary" href="/ebooks/view?id=${ebook.id}">Abrir</a>
+                <a class="button button-secondary" href="/ebooks/view?id=${encodeURIComponent(ebook.id)}">Abrir</a>
                 <button class="button button-danger" type="button" data-delete="${ebook.id}">Eliminar</button>
               </div>
             </td>

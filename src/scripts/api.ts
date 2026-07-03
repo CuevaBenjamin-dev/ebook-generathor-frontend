@@ -7,10 +7,24 @@ import type {
   SettingsStatus
 } from "./types";
 
-const API_BASE_URL = import.meta.env.PUBLIC_API_BASE_URL ?? "http://localhost:8000/api/v1";
+const API_BASE_URL = normalizeApiBaseUrl(
+  import.meta.env.PUBLIC_API_BASE_URL || "http://localhost:8000/api/v1"
+);
+
+function normalizeApiBaseUrl(value: string): string {
+  return value.trim().replace(/\/+$/, "");
+}
+
+function apiUrl(path: string): string {
+  return `${API_BASE_URL}${path.startsWith("/") ? path : `/${path}`}`;
+}
+
+export function getApiBaseUrl(): string {
+  return API_BASE_URL;
+}
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
+  const response = await fetch(apiUrl(path), {
     headers: {
       "Content-Type": "application/json",
       ...(options.headers ?? {})
@@ -91,4 +105,3 @@ export function getPdfUrl(ebookId: string): string {
 export function getEpubUrl(ebookId: string): string {
   return `${API_BASE_URL}/ebooks/${ebookId}/export/epub`;
 }
-

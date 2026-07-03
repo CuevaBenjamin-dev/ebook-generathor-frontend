@@ -2,7 +2,7 @@
 const { ebookId } = Astro.props;
 ---
 
-<section class="preview-shell" id="preview-app" data-ebook-id={ebookId}>
+<section class="preview-shell" id="preview-app" data-ebook-id={ebookId ?? ""}>
   <aside class="preview-sidebar">
     <h2>Módulos</h2>
     <div id="preview-modules" class="preview-modules"></div>

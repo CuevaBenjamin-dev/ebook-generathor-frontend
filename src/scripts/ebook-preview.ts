@@ -2,7 +2,10 @@ import { getEpubUrl, getPdfUrl, getPreview } from "./api";
 import type { EbookPreviewPage, EbookPreviewResponse } from "./types";
 
 const app = document.querySelector<HTMLElement>("#preview-app");
-const ebookId = app?.dataset.ebookId ?? "";
+const ebookId =
+  app?.dataset.ebookId ||
+  new URLSearchParams(window.location.search).get("id") ||
+  "";
 const moduleList = document.querySelector<HTMLElement>("#preview-modules");
 const reader = document.querySelector<HTMLElement>("#reader-page");
 const pageSelect = document.querySelector<HTMLSelectElement>("#page-select");
@@ -17,7 +20,11 @@ let pages: Array<EbookPreviewPage & { moduleTitle: string }> = [];
 let currentIndex = 0;
 
 async function initPreview(): Promise<void> {
-  if (!ebookId || !reader) return;
+  if (!reader) return;
+  if (!ebookId) {
+    reader.innerHTML = `<div class="error-box">No se recibió el ID del ebook. Abre el ebook desde la lista o genera uno nuevo.</div>`;
+    return;
+  }
   try {
     preview = await getPreview(ebookId);
     pages = preview.modules.flatMap((module) =>
@@ -144,4 +151,3 @@ function errorMessage(error: unknown): string {
 }
 
 void initPreview();
-

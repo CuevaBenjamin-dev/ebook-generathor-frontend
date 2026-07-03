@@ -1,5 +1,6 @@
 import {
   createEbook,
+  getApiBaseUrl,
   generateEbook,
   getJob,
   getSettingsStatus,
@@ -201,7 +202,7 @@ async function loadSettingsForSummary(): Promise<void> {
   } catch {
     showError(
       settingsWarning,
-      "No se pudo conectar con el backend en http://localhost:8000.",
+      `No se pudo conectar con el backend en ${getApiBaseUrl()}.`,
     );
     generateButton.disabled = true;
   }
@@ -243,7 +244,7 @@ async function pollJob(jobId: string): Promise<void> {
       const job = await getJob(jobId);
       updateProgress(job.progress, job.current_step);
       if (job.status === "completed") {
-        window.location.href = `/ebooks/view?id=${job.ebook_id}`;
+        window.location.href = `/ebooks/view?id=${encodeURIComponent(job.ebook_id)}`;
         return;
       }
       if (job.status === "failed") {

@@ -25,7 +25,7 @@ import MainLayout from "../layouts/MainLayout.astro";
 </MainLayout>
 
 <script>
-  import { getSettingsStatus } from "../scripts/api";
+  import { getApiBaseUrl, getSettingsStatus } from "../scripts/api";
 
   const backendState = document.querySelector<HTMLElement>("#backend-state");
   const openaiState = document.querySelector<HTMLElement>("#openai-state");
@@ -44,9 +44,8 @@ import MainLayout from "../layouts/MainLayout.astro";
     if (openaiState) openaiState.textContent = "No disponible";
     if (modelState) modelState.textContent = "No disponible";
     if (errorBox) {
-      errorBox.textContent = "No se pudo conectar con el backend en http://localhost:8000.";
+      errorBox.textContent = `No se pudo conectar con el backend en ${getApiBaseUrl()}.`;
       errorBox.classList.remove("is-hidden");
     }
   }
 </script>
-
