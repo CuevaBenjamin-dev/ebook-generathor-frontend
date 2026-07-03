@@ -3,14 +3,14 @@ import {
   generateEbook,
   getJob,
   getSettingsStatus,
-  proposeModules
+  proposeModules,
 } from "./api";
 import type { EbookModuleInput, ModuleMode, SettingsStatus } from "./types";
 import {
   allocatePagesForPreview,
   validateCounts,
   validateModules,
-  validateTopic
+  validateTopic,
 } from "./validators";
 
 type FlowStep = "config" | "modules" | "summary" | "progress";
@@ -31,35 +31,51 @@ const state: FlowState = {
   totalPages: 60,
   moduleMode: "ai_suggested",
   modules: [],
-  proposalSignature: ""
+  proposalSignature: "",
 };
 
 const topicInput = document.querySelector<HTMLInputElement>("#topic-input");
-const moduleCountInput = document.querySelector<HTMLInputElement>("#module-count");
+const moduleCountInput =
+  document.querySelector<HTMLInputElement>("#module-count");
 const pageCountInput = document.querySelector<HTMLInputElement>("#page-count");
 const configError = document.querySelector<HTMLElement>("#config-error");
 const modulesError = document.querySelector<HTMLElement>("#modules-error");
 const moduleList = document.querySelector<HTMLElement>("#module-list");
 const modulesLoading = document.querySelector<HTMLElement>("#modules-loading");
 const summaryBox = document.querySelector<HTMLElement>("#summary-box");
-const settingsWarning = document.querySelector<HTMLElement>("#settings-warning");
-const generateButton = document.querySelector<HTMLButtonElement>("#generate-ebook");
+const settingsWarning =
+  document.querySelector<HTMLElement>("#settings-warning");
+const generateButton =
+  document.querySelector<HTMLButtonElement>("#generate-ebook");
 
 function initCreateFlow(): void {
-  if (!topicInput || !moduleCountInput || !pageCountInput || !moduleList) return;
+  if (!topicInput || !moduleCountInput || !pageCountInput || !moduleList)
+    return;
 
   const storedTopic = sessionStorage.getItem("ebookTopic");
   if (storedTopic && !topicInput.value) {
     topicInput.value = storedTopic;
   }
 
-  document.querySelector("#to-modules")?.addEventListener("click", handleConfigContinue);
-  document.querySelector("#back-config")?.addEventListener("click", () => setStep("config"));
-  document.querySelector("#to-summary")?.addEventListener("click", handleModulesContinue);
-  document.querySelector("#back-modules")?.addEventListener("click", () => setStep("modules"));
+  document
+    .querySelector("#to-modules")
+    ?.addEventListener("click", handleConfigContinue);
+  document
+    .querySelector("#back-config")
+    ?.addEventListener("click", () => setStep("config"));
+  document
+    .querySelector("#to-summary")
+    ?.addEventListener("click", handleModulesContinue);
+  document
+    .querySelector("#back-modules")
+    ?.addEventListener("click", () => setStep("modules"));
   document.querySelector("#add-module")?.addEventListener("click", addModule);
-  document.querySelector("#generate-ebook")?.addEventListener("click", handleGenerate);
-  document.querySelector("#back-after-fail")?.addEventListener("click", () => setStep("modules"));
+  document
+    .querySelector("#generate-ebook")
+    ?.addEventListener("click", handleGenerate);
+  document
+    .querySelector("#back-after-fail")
+    ?.addEventListener("click", () => setStep("modules"));
 
   moduleList.addEventListener("input", syncModulesFromDom);
   moduleList.addEventListener("change", syncModulesFromDom);
@@ -72,7 +88,9 @@ function readConfig(): boolean {
   const topic = topicInput?.value ?? "";
   const moduleCount = Number(moduleCountInput?.value ?? 0);
   const totalPages = Number(pageCountInput?.value ?? 0);
-  const selectedMode = document.querySelector<HTMLInputElement>("input[name='module-mode']:checked");
+  const selectedMode = document.querySelector<HTMLInputElement>(
+    "input[name='module-mode']:checked",
+  );
 
   const topicValidation = validateTopic(topic);
   if (!topicValidation.ok) {
@@ -127,14 +145,14 @@ async function loadProposedModules(signature: string): Promise<void> {
       module_count: state.moduleCount,
       total_content_pages: state.totalPages,
       audience: "principiantes",
-      tone: "educativo y claro"
+      tone: "educativo y claro",
     });
     state.modules = response.modules.map((module) => ({
       position: module.position,
       title: module.title,
       objective: module.objective,
       is_active: true,
-      target_pages: module.target_pages
+      target_pages: module.target_pages,
     }));
     state.proposalSignature = signature;
   } catch (error) {
@@ -142,7 +160,7 @@ async function loadProposedModules(signature: string): Promise<void> {
     state.proposalSignature = signature;
     showError(
       modulesError,
-      `${errorMessage(error)} Puedes cambiar a módulos manuales o completar backend/.env si falta OpenAI.`
+      `${errorMessage(error)} Puedes cambiar a módulos manuales o completar backend/.env si falta OpenAI.`,
     );
   } finally {
     hide(modulesLoading);
@@ -171,7 +189,7 @@ async function loadSettingsForSummary(): Promise<void> {
     if (!state.settings.openai_configured || !state.settings.model_configured) {
       showError(
         settingsWarning,
-        "OpenAI no está configurado. Abre backend/.env y completa OPENAI_API_KEY y OPENAI_MODEL."
+        "OpenAI no está configurado. Abre backend/.env y completa OPENAI_API_KEY y OPENAI_MODEL.",
       );
       generateButton.disabled = true;
     } else {
@@ -181,7 +199,10 @@ async function loadSettingsForSummary(): Promise<void> {
       generateButton.disabled = false;
     }
   } catch {
-    showError(settingsWarning, "No se pudo conectar con el backend en http://localhost:8000.");
+    showError(
+      settingsWarning,
+      "No se pudo conectar con el backend en http://localhost:8000.",
+    );
     generateButton.disabled = true;
   }
 }
@@ -206,8 +227,8 @@ async function handleGenerate(): Promise<void> {
         ...module,
         position: index + 1,
         title: module.title.trim(),
-        objective: module.objective?.trim() || undefined
-      }))
+        objective: module.objective?.trim() || undefined,
+      })),
     });
     const generation = await generateEbook(created.ebook_id);
     await pollJob(generation.job_id);
@@ -222,7 +243,7 @@ async function pollJob(jobId: string): Promise<void> {
       const job = await getJob(jobId);
       updateProgress(job.progress, job.current_step);
       if (job.status === "completed") {
-        window.location.href = `/ebooks/${job.ebook_id}`;
+        window.location.href = `/ebooks/view?id=${job.ebook_id}`;
         return;
       }
       if (job.status === "failed") {
@@ -242,13 +263,16 @@ function buildGenericModules(count: number): EbookModuleInput[] {
     position: index + 1,
     title: `Módulo ${index + 1}`,
     objective: "",
-    is_active: true
+    is_active: true,
   }));
 }
 
 function renderModules(): void {
   if (!moduleList) return;
-  state.modules = state.modules.map((module, index) => ({ ...module, position: index + 1 }));
+  state.modules = state.modules.map((module, index) => ({
+    ...module,
+    position: index + 1,
+  }));
   moduleList.innerHTML = state.modules
     .map(
       (module, index) => `
@@ -272,23 +296,32 @@ function renderModules(): void {
             <button class="button button-danger" type="button" data-action="delete">Eliminar</button>
           </div>
         </article>
-      `
+      `,
     )
     .join("");
 }
 
 function syncModulesFromDom(): void {
   if (!moduleList) return;
-  const rows = Array.from(moduleList.querySelectorAll<HTMLElement>(".module-row"));
+  const rows = Array.from(
+    moduleList.querySelectorAll<HTMLElement>(".module-row"),
+  );
   state.modules = rows.map((row, index) => {
-    const pagesValue = row.querySelector<HTMLInputElement>(".module-pages")?.value ?? "";
+    const pagesValue =
+      row.querySelector<HTMLInputElement>(".module-pages")?.value ?? "";
     const targetPages = pagesValue ? Number(pagesValue) : undefined;
     return {
       position: index + 1,
-      title: row.querySelector<HTMLInputElement>(".module-title")?.value.trim() ?? "",
-      objective: row.querySelector<HTMLTextAreaElement>(".module-objective")?.value.trim() || undefined,
-      is_active: row.querySelector<HTMLInputElement>(".module-active")?.checked ?? false,
-      target_pages: targetPages && targetPages > 0 ? targetPages : undefined
+      title:
+        row.querySelector<HTMLInputElement>(".module-title")?.value.trim() ??
+        "",
+      objective:
+        row
+          .querySelector<HTMLTextAreaElement>(".module-objective")
+          ?.value.trim() || undefined,
+      is_active:
+        row.querySelector<HTMLInputElement>(".module-active")?.checked ?? false,
+      target_pages: targetPages && targetPages > 0 ? targetPages : undefined,
     };
   });
 }
@@ -308,10 +341,16 @@ function handleModuleButtonClick(event: MouseEvent): void {
     state.modules.splice(index, 1);
   }
   if (action === "up" && index > 0) {
-    [state.modules[index - 1], state.modules[index]] = [state.modules[index], state.modules[index - 1]];
+    [state.modules[index - 1], state.modules[index]] = [
+      state.modules[index],
+      state.modules[index - 1],
+    ];
   }
   if (action === "down" && index < state.modules.length - 1) {
-    [state.modules[index + 1], state.modules[index]] = [state.modules[index], state.modules[index + 1]];
+    [state.modules[index + 1], state.modules[index]] = [
+      state.modules[index],
+      state.modules[index + 1],
+    ];
   }
   renderModules();
 }
@@ -322,7 +361,7 @@ function addModule(): void {
     position: state.modules.length + 1,
     title: `Módulo ${state.modules.length + 1}`,
     objective: "",
-    is_active: true
+    is_active: true,
   });
   renderModules();
 }
@@ -331,7 +370,10 @@ function renderSummary(): void {
   if (!summaryBox) return;
   const allocated = allocatePagesForPreview(state.modules, state.totalPages);
   const activeCount = allocated.length;
-  const modeText = state.moduleMode === "ai_suggested" ? "IA propuso módulos" : "Usuario definió módulos";
+  const modeText =
+    state.moduleMode === "ai_suggested"
+      ? "IA propuso módulos"
+      : "Usuario definió módulos";
 
   summaryBox.innerHTML = `
     <div class="summary-meta">
@@ -350,7 +392,7 @@ function renderSummary(): void {
               <span>${escapeHtml(module.title)}</span>
               <strong>${module.target_pages} páginas</strong>
             </li>
-          `
+          `,
         )
         .join("")}
     </ol>
@@ -364,7 +406,10 @@ function setStep(step: FlowStep): void {
 
   const stepIndex = { config: 1, modules: 2, summary: 3, progress: 4 }[step];
   document.querySelectorAll<HTMLElement>(".stepper-item").forEach((item) => {
-    item.classList.toggle("is-active", Number(item.dataset.stepIndex) === stepIndex);
+    item.classList.toggle(
+      "is-active",
+      Number(item.dataset.stepIndex) === stepIndex,
+    );
   });
 }
 
@@ -399,7 +444,9 @@ function hide(element: HTMLElement | null): void {
 }
 
 function errorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : "Ocurrió un error inesperado.";
+  return error instanceof Error
+    ? error.message
+    : "Ocurrió un error inesperado.";
 }
 
 function escapeHtml(value: string): string {
@@ -411,4 +458,3 @@ function escapeHtml(value: string): string {
 }
 
 initCreateFlow();
-
