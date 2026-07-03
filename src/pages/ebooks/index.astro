@@ -17,7 +17,10 @@ import MainLayout from "../../layouts/MainLayout.astro";
       </div>
       <div id="ebooks-error" class="error-box is-hidden"></div>
       <div id="ebooks-empty">
-        <EmptyState title="Aún no hay eBooks" text="Crea tu primer ebook desde la pantalla de inicio." />
+        <EmptyState
+          title="Aún no hay eBooks"
+          text="Crea tu primer ebook desde la pantalla de inicio."
+        />
       </div>
       <div id="ebooks-table-wrap" class="is-hidden">
         <table class="ebook-table">
@@ -45,7 +48,7 @@ import MainLayout from "../../layouts/MainLayout.astro";
     draft: "Borrador",
     generating: "Generando",
     completed: "Completado",
-    failed: "Fallido"
+    failed: "Fallido",
   };
 
   const tableWrap = document.querySelector<HTMLElement>("#ebooks-table-wrap");
@@ -83,12 +86,12 @@ import MainLayout from "../../layouts/MainLayout.astro";
             <td>${new Date(ebook.created_at).toLocaleString()}</td>
             <td>
               <div class="table-actions">
-                <a class="button button-secondary" href="/ebooks/${ebook.id}">Abrir</a>
+                <a class="button button-secondary" href="/ebooks/view?id=${ebook.id}">Abrir</a>
                 <button class="button button-danger" type="button" data-delete="${ebook.id}">Eliminar</button>
               </div>
             </td>
           </tr>
-        `
+        `,
         )
         .join("");
     } catch {
@@ -104,7 +107,9 @@ import MainLayout from "../../layouts/MainLayout.astro";
     if (!(target instanceof HTMLElement)) return;
     const ebookId = target.dataset.delete;
     if (!ebookId) return;
-    const confirmed = window.confirm("¿Eliminar este ebook y sus archivos exportados?");
+    const confirmed = window.confirm(
+      "¿Eliminar este ebook y sus archivos exportados?",
+    );
     if (!confirmed) return;
     await deleteEbook(ebookId);
     await loadEbooks();
@@ -112,4 +117,3 @@ import MainLayout from "../../layouts/MainLayout.astro";
 
   await loadEbooks();
 </script>
-
