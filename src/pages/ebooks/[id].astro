@@ -1,0 +1,18 @@
+---
+import AppShell from "../../components/AppShell.astro";
+import EbookPreview from "../../components/EbookPreview.astro";
+import MainLayout from "../../layouts/MainLayout.astro";
+
+const { id } = Astro.params;
+export const prerender = false;
+---
+
+<MainLayout title="Vista previa | Generador de eBooks IA">
+  <AppShell active="ebooks">
+    <EbookPreview ebookId={id} />
+  </AppShell>
+</MainLayout>
+
+<script>
+  import "../../scripts/ebook-preview";
+</script>

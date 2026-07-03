@@ -1,0 +1,9 @@
+---
+const { id, label, placeholder = "", value = "", maxlength, required = false } = Astro.props;
+---
+
+<label class="field" for={id}>
+  <span>{label}</span>
+  <input id={id} type="text" placeholder={placeholder} value={value} maxlength={maxlength} required={required} />
+</label>
+

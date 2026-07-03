@@ -1,0 +1,90 @@
+---
+import AppShell from "../components/AppShell.astro";
+import Card from "../components/Card.astro";
+import ModuleEditor from "../components/ModuleEditor.astro";
+import NumberInput from "../components/NumberInput.astro";
+import ProgressPanel from "../components/ProgressPanel.astro";
+import RadioCard from "../components/RadioCard.astro";
+import Stepper from "../components/Stepper.astro";
+import TextInput from "../components/TextInput.astro";
+import MainLayout from "../layouts/MainLayout.astro";
+---
+
+<MainLayout title="Crear eBook | Generador de eBooks IA">
+  <AppShell active="inicio">
+    <Stepper current={1} />
+
+    <section class="flow-step is-active" data-step="config">
+      <Card>
+        <p class="eyebrow">Paso 1</p>
+        <h2>Configuración del eBook</h2>
+        <div class="config-form">
+          <TextInput id="topic-input" label="Tema del ebook" maxlength="160" required={true} />
+          <div class="form-grid">
+            <NumberInput id="module-count" label="Cantidad de módulos" value="8" min="1" max="20" />
+            <NumberInput id="page-count" label="Páginas de contenido" value="60" min="5" max="300" />
+          </div>
+          <div>
+            <span class="field-label">Método de definición de módulos</span>
+            <div class="radio-grid">
+              <RadioCard
+                name="module-mode"
+                value="ai_suggested"
+                title="La aplicación propone los módulos"
+                description="Usa OpenAI desde el backend para sugerir la estructura."
+                checked={true}
+              />
+              <RadioCard
+                name="module-mode"
+                value="manual"
+                title="Yo definiré los módulos"
+                description="Crea una lista editable con nombres genéricos."
+              />
+            </div>
+          </div>
+          <div id="config-error" class="error-box is-hidden"></div>
+          <div class="form-actions">
+            <a class="button button-secondary" href="/">Volver</a>
+            <button class="button button-primary" type="button" id="to-modules">Continuar</button>
+          </div>
+        </div>
+      </Card>
+    </section>
+
+    <section class="flow-step" data-step="modules">
+      <Card>
+        <p class="eyebrow">Paso 2</p>
+        <ModuleEditor />
+        <div id="modules-error" class="error-box is-hidden"></div>
+        <div class="form-actions">
+          <button class="button button-secondary" type="button" id="back-config">Volver</button>
+          <button class="button button-primary" type="button" id="to-summary">Continuar</button>
+        </div>
+      </Card>
+    </section>
+
+    <section class="flow-step" data-step="summary">
+      <Card>
+        <p class="eyebrow">Paso 3</p>
+        <h2>Resumen antes de generar</h2>
+        <div id="summary-box" class="summary-grid"></div>
+        <div id="settings-warning" class="notice is-hidden"></div>
+        <div class="form-actions">
+          <button class="button button-secondary" type="button" id="back-modules">Volver a editar</button>
+          <button class="button button-primary" type="button" id="generate-ebook" disabled>Generar eBook</button>
+        </div>
+      </Card>
+    </section>
+
+    <section class="flow-step" data-step="progress">
+      <Card>
+        <ProgressPanel />
+      </Card>
+    </section>
+  </AppShell>
+</MainLayout>
+
+<script>
+  import "../scripts/create-flow";
+</script>
+

@@ -1,0 +1,9 @@
+---
+const { id, label, value, min, max } = Astro.props;
+---
+
+<label class="field" for={id}>
+  <span>{label}</span>
+  <input id={id} type="number" value={value} min={min} max={max} />
+</label>
+

@@ -1,0 +1,17 @@
+---
+import Header from "./Header.astro";
+import Sidebar from "./Sidebar.astro";
+
+const { active = "inicio" } = Astro.props;
+---
+
+<div class="app-shell">
+  <Sidebar active={active} />
+  <div class="app-main">
+    <Header />
+    <main class="content">
+      <slot />
+    </main>
+  </div>
+</div>
+

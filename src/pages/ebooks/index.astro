@@ -1,0 +1,115 @@
+---
+import AppShell from "../../components/AppShell.astro";
+import Card from "../../components/Card.astro";
+import EmptyState from "../../components/EmptyState.astro";
+import MainLayout from "../../layouts/MainLayout.astro";
+---
+
+<MainLayout title="Mis eBooks | Generador de eBooks IA">
+  <AppShell active="ebooks">
+    <Card>
+      <div class="module-toolbar">
+        <div>
+          <p class="eyebrow">Biblioteca local</p>
+          <h2>Mis eBooks</h2>
+        </div>
+        <a class="button button-primary" href="/">Crear eBook</a>
+      </div>
+      <div id="ebooks-error" class="error-box is-hidden"></div>
+      <div id="ebooks-empty">
+        <EmptyState title="Aún no hay eBooks" text="Crea tu primer ebook desde la pantalla de inicio." />
+      </div>
+      <div id="ebooks-table-wrap" class="is-hidden">
+        <table class="ebook-table">
+          <thead>
+            <tr>
+              <th>Tema</th>
+              <th>Estado</th>
+              <th>Páginas</th>
+              <th>Módulos</th>
+              <th>Creado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="ebooks-table"></tbody>
+        </table>
+      </div>
+    </Card>
+  </AppShell>
+</MainLayout>
+
+<script>
+  import { deleteEbook, listEbooks } from "../../scripts/api";
+
+  const labels = {
+    draft: "Borrador",
+    generating: "Generando",
+    completed: "Completado",
+    failed: "Fallido"
+  };
+
+  const tableWrap = document.querySelector<HTMLElement>("#ebooks-table-wrap");
+  const table = document.querySelector<HTMLElement>("#ebooks-table");
+  const empty = document.querySelector<HTMLElement>("#ebooks-empty");
+  const errorBox = document.querySelector<HTMLElement>("#ebooks-error");
+
+  function escapeHtml(value: string): string {
+    return value
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;");
+  }
+
+  async function loadEbooks() {
+    try {
+      const response = await listEbooks();
+      if (!response.items.length) {
+        empty?.classList.remove("is-hidden");
+        tableWrap?.classList.add("is-hidden");
+        return;
+      }
+      empty?.classList.add("is-hidden");
+      tableWrap?.classList.remove("is-hidden");
+      if (!table) return;
+      table.innerHTML = response.items
+        .map(
+          (ebook) => `
+          <tr>
+            <td>${escapeHtml(ebook.title || ebook.topic)}</td>
+            <td><span class="status-badge status-${ebook.status}">${labels[ebook.status]}</span></td>
+            <td>${ebook.total_content_pages}</td>
+            <td>${ebook.active_modules}</td>
+            <td>${new Date(ebook.created_at).toLocaleString()}</td>
+            <td>
+              <div class="table-actions">
+                <a class="button button-secondary" href="/ebooks/${ebook.id}">Abrir</a>
+                <button class="button button-danger" type="button" data-delete="${ebook.id}">Eliminar</button>
+              </div>
+            </td>
+          </tr>
+        `
+        )
+        .join("");
+    } catch {
+      if (errorBox) {
+        errorBox.textContent = "No se pudo conectar con el backend.";
+        errorBox.classList.remove("is-hidden");
+      }
+    }
+  }
+
+  table?.addEventListener("click", async (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLElement)) return;
+    const ebookId = target.dataset.delete;
+    if (!ebookId) return;
+    const confirmed = window.confirm("¿Eliminar este ebook y sus archivos exportados?");
+    if (!confirmed) return;
+    await deleteEbook(ebookId);
+    await loadEbooks();
+  });
+
+  await loadEbooks();
+</script>
+

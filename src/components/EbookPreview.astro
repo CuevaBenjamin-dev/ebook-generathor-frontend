@@ -1,0 +1,25 @@
+---
+const { ebookId } = Astro.props;
+---
+
+<section class="preview-shell" id="preview-app" data-ebook-id={ebookId}>
+  <aside class="preview-sidebar">
+    <h2>Módulos</h2>
+    <div id="preview-modules" class="preview-modules"></div>
+  </aside>
+  <article class="preview-reader">
+    <div class="preview-toolbar">
+      <button class="button button-secondary" type="button" id="prev-page">Anterior</button>
+      <select id="page-select" aria-label="Selector de página"></select>
+      <button class="button button-secondary" type="button" id="next-page">Siguiente</button>
+      <label class="zoom-control" for="zoom-control">
+        Zoom
+        <input id="zoom-control" type="range" min="85" max="125" value="100" />
+      </label>
+      <a class="button button-secondary" href="/create">Volver a editar</a>
+      <a class="button button-secondary" id="download-pdf" href="#">Descargar PDF</a>
+      <a class="button button-secondary" id="download-epub" href="#">Descargar EPUB</a>
+    </div>
+    <div class="reader-page" id="reader-page"></div>
+  </article>
+</section>

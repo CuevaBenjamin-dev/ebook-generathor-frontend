@@ -1,0 +1,5 @@
+
+> generador-ebooks-ia-frontend@0.1.0 dev
+> astro dev --host 127.0.0.1 --port 4321 --host 127.0.0.1 --port 4321
+
+{"message":"Dev server running at http://localhost:4321 (pid 1256)\n  Network:\n    http://172.26.96.1:4321/\n    http://192.168.18.5:4321/\n  Stop:   astro dev stop\n  Status: astro dev status\n  Logs:   astro dev logs","label":"SKIP_FORMAT","level":"info"}

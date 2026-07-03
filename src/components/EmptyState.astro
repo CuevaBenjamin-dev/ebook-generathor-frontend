@@ -1,0 +1,9 @@
+---
+const { title = "Sin resultados", text = "" } = Astro.props;
+---
+
+<div class="empty-state">
+  <strong>{title}</strong>
+  {text && <p>{text}</p>}
+</div>
+

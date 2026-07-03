@@ -1,0 +1,12 @@
+---
+const { name, value, title, description, checked = false } = Astro.props;
+---
+
+<label class="radio-card">
+  <input type="radio" name={name} value={value} checked={checked} />
+  <span>
+    <strong>{title}</strong>
+    <small>{description}</small>
+  </span>
+</label>
+

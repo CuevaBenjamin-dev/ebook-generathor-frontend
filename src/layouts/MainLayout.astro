@@ -1,0 +1,22 @@
+---
+import "../styles/global.css";
+import "../styles/components.css";
+import "../styles/create-flow.css";
+import "../styles/preview.css";
+
+const { title = "Generador de eBooks IA" } = Astro.props;
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="/favicon.svg" />
+    <title>{title}</title>
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
+

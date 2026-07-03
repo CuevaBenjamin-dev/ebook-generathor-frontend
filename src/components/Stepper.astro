@@ -1,0 +1,14 @@
+---
+const { current = 1 } = Astro.props;
+const steps = ["Configurar", "Módulos", "Resumen", "Generación"];
+---
+
+<ol class="stepper" id="flow-stepper" data-current={current}>
+  {steps.map((step, index) => (
+    <li class:list={["stepper-item", index + 1 === current && "is-active"]} data-step-index={index + 1}>
+      <span>{index + 1}</span>
+      <strong>{step}</strong>
+    </li>
+  ))}
+</ol>
+

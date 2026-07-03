@@ -1,0 +1,52 @@
+---
+import AppShell from "../components/AppShell.astro";
+import Card from "../components/Card.astro";
+import MainLayout from "../layouts/MainLayout.astro";
+---
+
+<MainLayout title="Configuración | Generador de eBooks IA">
+  <AppShell active="settings">
+    <Card>
+      <p class="eyebrow">Configuración</p>
+      <h2>Estado del sistema</h2>
+      <div class="summary-meta" id="settings-status">
+        <div class="meta-card"><span>Backend</span><strong id="backend-state">Conectando...</strong></div>
+        <div class="meta-card"><span>OpenAI</span><strong id="openai-state">Revisando...</strong></div>
+        <div class="meta-card"><span>Modelo configurado</span><strong id="model-state">Revisando...</strong></div>
+        <div class="meta-card"><span>Modelo</span><strong id="model-name">No disponible</strong></div>
+      </div>
+      <p class="notice">
+        Para configurar OpenAI, abre backend/.env y completa OPENAI_API_KEY.
+        Nunca coloques la API key en el frontend.
+      </p>
+      <div id="settings-error" class="error-box is-hidden"></div>
+    </Card>
+  </AppShell>
+</MainLayout>
+
+<script>
+  import { getSettingsStatus } from "../scripts/api";
+
+  const backendState = document.querySelector<HTMLElement>("#backend-state");
+  const openaiState = document.querySelector<HTMLElement>("#openai-state");
+  const modelState = document.querySelector<HTMLElement>("#model-state");
+  const modelName = document.querySelector<HTMLElement>("#model-name");
+  const errorBox = document.querySelector<HTMLElement>("#settings-error");
+
+  try {
+    const status = await getSettingsStatus();
+    if (backendState) backendState.textContent = status.backend_ok ? "Conectado" : "No conectado";
+    if (openaiState) openaiState.textContent = status.openai_configured ? "Configurado" : "No configurado";
+    if (modelState) modelState.textContent = status.model_configured ? "Configurado" : "No configurado";
+    if (modelName) modelName.textContent = status.model || "No configurado";
+  } catch {
+    if (backendState) backendState.textContent = "No conectado";
+    if (openaiState) openaiState.textContent = "No disponible";
+    if (modelState) modelState.textContent = "No disponible";
+    if (errorBox) {
+      errorBox.textContent = "No se pudo conectar con el backend en http://localhost:8000.";
+      errorBox.classList.remove("is-hidden");
+    }
+  }
+</script>
+

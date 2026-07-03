@@ -1,0 +1,24 @@
+---
+const { active = "inicio" } = Astro.props;
+
+const links = [
+  { id: "inicio", href: "/", label: "Inicio" },
+  { id: "ebooks", href: "/ebooks", label: "Mis eBooks" },
+  { id: "settings", href: "/settings", label: "Configuración" }
+];
+---
+
+<aside class="sidebar">
+  <a class="brand" href="/" aria-label="Generador de eBooks">
+    <span class="brand-mark">G</span>
+    <span>Generador de eBooks</span>
+  </a>
+  <nav class="sidebar-nav" aria-label="Navegación principal">
+    {links.map((link) => (
+      <a class:list={["nav-link", active === link.id && "is-active"]} href={link.href}>
+        {link.label}
+      </a>
+    ))}
+  </nav>
+</aside>
+
