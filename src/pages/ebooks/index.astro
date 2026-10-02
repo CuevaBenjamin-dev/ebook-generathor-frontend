@@ -15,6 +15,23 @@ import MainLayout from "../../layouts/MainLayout.astro";
         </div>
         <a class="button button-primary" href="/">Crear eBook</a>
       </div>
+      <div class="library-filters">
+        <label class="field" for="ebook-type-filter">
+          <span>Filtrar por tipo</span>
+          <select id="ebook-type-filter">
+            <option value="">Todos los eBooks</option>
+            <option value="standard">E-Books estándar</option>
+            <option value="teacher_training">E-Books Capacitación Docente</option>
+            <option value="law">E-Books Derecho</option>
+            <option value="public_management">E-Books Gestión Pública</option>
+            <option value="office">E-Books Ofimática</option>
+            <option value="health">E-Books Sector Salud</option>
+            <option value="technology">E-Books Tecnología</option>
+            <option value="civil_engineering">E-Books Ingeniería Civil</option>
+            <option value="agronomy">E-Books Agronomía o Cultivos</option>
+          </select>
+        </label>
+      </div>
       <div id="ebooks-error" class="error-box is-hidden"></div>
       <div id="ebooks-empty">
         <EmptyState
@@ -28,6 +45,7 @@ import MainLayout from "../../layouts/MainLayout.astro";
             <tr>
               <th>Tema</th>
               <th>Estado</th>
+              <th>Tipo</th>
               <th>Páginas</th>
               <th>Módulos</th>
               <th>Creado</th>
@@ -43,6 +61,7 @@ import MainLayout from "../../layouts/MainLayout.astro";
 
 <script>
   import { deleteEbook, listEbooks } from "../../scripts/api";
+  import { EBOOK_TYPE_LABELS, type EbookType } from "../../scripts/types";
 
   const labels = {
     draft: "Borrador",
@@ -55,6 +74,8 @@ import MainLayout from "../../layouts/MainLayout.astro";
   const table = document.querySelector<HTMLElement>("#ebooks-table");
   const empty = document.querySelector<HTMLElement>("#ebooks-empty");
   const errorBox = document.querySelector<HTMLElement>("#ebooks-error");
+  const typeFilter =
+    document.querySelector<HTMLSelectElement>("#ebook-type-filter");
 
   function escapeHtml(value: string): string {
     return value
@@ -66,7 +87,8 @@ import MainLayout from "../../layouts/MainLayout.astro";
 
   async function loadEbooks() {
     try {
-      const response = await listEbooks();
+      const selectedType = typeFilter?.value as EbookType | undefined;
+      const response = await listEbooks(selectedType || undefined);
       if (!response.items.length) {
         empty?.classList.remove("is-hidden");
         tableWrap?.classList.add("is-hidden");
@@ -81,6 +103,7 @@ import MainLayout from "../../layouts/MainLayout.astro";
           <tr>
             <td>${escapeHtml(ebook.title || ebook.topic)}</td>
             <td><span class="status-badge status-${ebook.status}">${labels[ebook.status]}</span></td>
+            <td><span class="type-badge type-${ebook.ebook_type}">${EBOOK_TYPE_LABELS[ebook.ebook_type]}</span></td>
             <td>${ebook.total_content_pages}</td>
             <td>${ebook.active_modules}</td>
             <td>${new Date(ebook.created_at).toLocaleString()}</td>
@@ -114,6 +137,8 @@ import MainLayout from "../../layouts/MainLayout.astro";
     await deleteEbook(ebookId);
     await loadEbooks();
   });
+
+  typeFilter?.addEventListener("change", loadEbooks);
 
   await loadEbooks();
 </script>

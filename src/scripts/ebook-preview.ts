@@ -1,5 +1,15 @@
-import { downloadEpub, downloadPdf, getPreview } from "./api";
-import type { EbookPreviewPage, EbookPreviewResponse } from "./types";
+import { downloadEpub, downloadPdf, getCoverUrl, getPreview } from "./api";
+import {
+  EBOOK_EXPORT_SUFFIXES,
+  EBOOK_TYPE_LABELS,
+  hasCollectionCover,
+  type EbookPreviewPage,
+  type EbookPreviewResponse,
+} from "./types";
+
+type PreviewItem =
+  | { kind: "cover"; page_number: 0; title: string; moduleTitle: string }
+  | (EbookPreviewPage & { kind: "content"; moduleTitle: string });
 
 const app = document.querySelector<HTMLElement>("#preview-app");
 const ebookId =
@@ -16,7 +26,7 @@ const pdfLink = document.querySelector<HTMLAnchorElement>("#download-pdf");
 const epubLink = document.querySelector<HTMLAnchorElement>("#download-epub");
 
 let preview: EbookPreviewResponse | null = null;
-let pages: Array<EbookPreviewPage & { moduleTitle: string }> = [];
+let pages: PreviewItem[] = [];
 let currentIndex = 0;
 
 async function initPreview(): Promise<void> {
@@ -27,9 +37,25 @@ async function initPreview(): Promise<void> {
   }
   try {
     preview = await getPreview(ebookId);
-    pages = preview.modules.flatMap((module) =>
-      module.pages.map((page) => ({ ...page, moduleTitle: module.title })),
+    const contentPages: PreviewItem[] = preview.modules.flatMap((module) =>
+      module.pages.map((page) => ({
+        ...page,
+        kind: "content" as const,
+        moduleTitle: module.title,
+      })),
     );
+    pages =
+      hasCollectionCover(preview.ebook.ebook_type)
+        ? [
+            {
+              kind: "cover",
+              page_number: 0,
+              title: `Carátula ${EBOOK_TYPE_LABELS[preview.ebook.ebook_type]}`,
+              moduleTitle: "Colección",
+            },
+            ...contentPages,
+          ]
+        : contentPages;
     if (pdfLink) pdfLink.href = "#";
     if (epubLink) epubLink.href = "#";
     renderModules();
@@ -62,7 +88,7 @@ function renderModules(): void {
 
 function firstPageIndexForModule(moduleId: string): number {
   if (!preview) return 0;
-  let index = 0;
+  let index = hasCollectionCover(preview.ebook.ebook_type) ? 1 : 0;
   for (const module of preview.modules) {
     if (module.id === moduleId) return index;
     index += module.pages.length;
@@ -74,8 +100,13 @@ function renderPageOptions(): void {
   if (!pageSelect) return;
   pageSelect.innerHTML = pages
     .map(
-      (page, index) =>
-        `<option value="${index}">Página ${page.page_number}: ${escapeHtml(page.title)}</option>`,
+      (page, index) => {
+        const label =
+          page.kind === "cover"
+            ? "Carátula"
+            : `Página ${page.page_number}: ${page.title}`;
+        return `<option value="${index}">${escapeHtml(label)}</option>`;
+      },
     )
     .join("");
 }
@@ -88,6 +119,20 @@ function renderPage(index: number): void {
   }
   currentIndex = Math.max(0, Math.min(index, pages.length - 1));
   const page = pages[currentIndex];
+  if (page.kind === "cover") {
+    const coverLabel = preview
+      ? EBOOK_TYPE_LABELS[preview.ebook.ebook_type]
+      : "Colección";
+    reader.innerHTML = `
+      <div class="training-cover-frame">
+        <img class="training-cover-preview" src="${escapeHtml(getCoverUrl(ebookId))}" alt="Carátula ${escapeHtml(coverLabel)}" />
+      </div>
+    `;
+    if (pageSelect) pageSelect.value = String(currentIndex);
+    if (prevButton) prevButton.disabled = true;
+    if (nextButton) nextButton.disabled = pages.length === 1;
+    return;
+  }
   reader.innerHTML = `
     <p class="eyebrow">${escapeHtml(page.moduleTitle)}</p>
     <h2>${escapeHtml(page.title)}</h2>
@@ -111,7 +156,7 @@ pdfLink?.addEventListener("click", async (event) => {
   event.preventDefault();
 
   try {
-    await downloadPdf(ebookId);
+    await downloadPdf(ebookId, exportFilename("pdf"));
   } catch (error) {
     alert(errorMessage(error));
   }
@@ -121,7 +166,7 @@ epubLink?.addEventListener("click", async (event) => {
   event.preventDefault();
 
   try {
-    await downloadEpub(ebookId);
+    await downloadEpub(ebookId, exportFilename("epub"));
   } catch (error) {
     alert(errorMessage(error));
   }
@@ -176,6 +221,20 @@ function errorMessage(error: unknown): string {
   return error instanceof Error
     ? error.message
     : "Ocurrió un error inesperado.";
+}
+
+function exportFilename(extension: "pdf" | "epub"): string {
+  if (!preview || !hasCollectionCover(preview.ebook.ebook_type)) {
+    return `ebook-${ebookId}.${extension}`;
+  }
+  const normalizedTopic = preview.ebook.topic
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^A-Za-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+  const collection = EBOOK_EXPORT_SUFFIXES[preview.ebook.ebook_type];
+  const suffix = extension === "pdf" ? `_${collection}_A4` : `_${collection}`;
+  return `${normalizedTopic || "Ebook"}${suffix}.${extension}`;
 }
 
 void initPreview();

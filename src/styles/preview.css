@@ -67,6 +67,22 @@
   transform-origin: top left;
 }
 
+.training-cover-frame {
+  display: grid;
+  min-height: 620px;
+  place-items: center;
+  border-radius: var(--radius-sm);
+  background: #ede9fe;
+  padding: 18px;
+}
+
+.training-cover-preview {
+  display: block;
+  width: min(100%, 595px);
+  height: auto;
+  box-shadow: 0 18px 48px rgba(22, 8, 61, 0.24);
+}
+
 .reader-page h2 {
   color: var(--color-primary-dark);
   font-size: 1.9rem;
@@ -97,4 +113,3 @@
     padding: 22px;
   }
 }
-

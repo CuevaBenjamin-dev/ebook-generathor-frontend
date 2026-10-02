@@ -2,15 +2,14 @@ import type {
   EbookCreateInput,
   EbookListItem,
   EbookPreviewResponse,
+  EbookType,
   GenerationJobStatus,
   ProposedModule,
   SettingsStatus,
 } from "./types";
 
 const API_BASE_URL = normalizeApiBaseUrl(
-  import.meta.env.PUBLIC_API_BASE_URL ||
-    "http://localhost:8000/api/v1" ||
-    "https://legwork-sulfide-slacking.ngrok-free.dev/api/v1",
+  import.meta.env.PUBLIC_API_BASE_URL || "http://localhost:8000/api/v1",
 );
 
 function normalizeApiBaseUrl(value: string): string {
@@ -28,8 +27,9 @@ export function getApiBaseUrl(): string {
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const headers = new Headers(options.headers);
 
-  headers.set("Content-Type", "application/json");
-  headers.set("ngrok-skip-browser-warning", "true");
+  if (options.body !== undefined) {
+    headers.set("Content-Type", "application/json");
+  }
 
   const response = await fetch(apiUrl(path), {
     ...options,
@@ -98,8 +98,15 @@ export function getPreview(ebookId: string): Promise<EbookPreviewResponse> {
   return request(`/ebooks/${ebookId}/preview`);
 }
 
-export function listEbooks(): Promise<{ items: EbookListItem[] }> {
-  return request("/ebooks");
+export function listEbooks(
+  ebookType?: EbookType,
+): Promise<{ items: EbookListItem[] }> {
+  const query = ebookType ? `?ebook_type=${encodeURIComponent(ebookType)}` : "";
+  return request(`/ebooks${query}`);
+}
+
+export function getCoverUrl(ebookId: string): string {
+  return apiUrl(`/ebooks/${ebookId}/cover`);
 }
 
 export function deleteEbook(ebookId: string): Promise<{ deleted: boolean }> {
@@ -119,7 +126,6 @@ async function requestFile(path: string, accept: string): Promise<Blob> {
     method: "GET",
     headers: {
       Accept: accept,
-      "ngrok-skip-browser-warning": "true",
     },
   });
 
@@ -150,20 +156,26 @@ function downloadBlob(blob: Blob, filename: string): void {
   URL.revokeObjectURL(url);
 }
 
-export async function downloadPdf(ebookId: string): Promise<void> {
+export async function downloadPdf(
+  ebookId: string,
+  filename = `ebook-${ebookId}.pdf`,
+): Promise<void> {
   const blob = await requestFile(
     `/ebooks/${ebookId}/export/pdf`,
     "application/pdf",
   );
 
-  downloadBlob(blob, `ebook-${ebookId}.pdf`);
+  downloadBlob(blob, filename);
 }
 
-export async function downloadEpub(ebookId: string): Promise<void> {
+export async function downloadEpub(
+  ebookId: string,
+  filename = `ebook-${ebookId}.epub`,
+): Promise<void> {
   const blob = await requestFile(
     `/ebooks/${ebookId}/export/epub`,
     "application/epub+zip",
   );
 
-  downloadBlob(blob, `ebook-${ebookId}.epub`);
+  downloadBlob(blob, filename);
 }

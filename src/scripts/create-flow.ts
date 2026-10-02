@@ -6,7 +6,13 @@ import {
   getSettingsStatus,
   proposeModules,
 } from "./api";
-import type { EbookModuleInput, ModuleMode, SettingsStatus } from "./types";
+import type {
+  EbookModuleInput,
+  EbookType,
+  ModuleMode,
+  SettingsStatus,
+} from "./types";
+import { EBOOK_TYPE_LABELS } from "./types";
 import {
   allocatePagesForPreview,
   validateCounts,
@@ -21,6 +27,7 @@ interface FlowState {
   moduleCount: number;
   totalPages: number;
   moduleMode: ModuleMode;
+  ebookType: EbookType;
   modules: EbookModuleInput[];
   proposalSignature: string;
   settings?: SettingsStatus;
@@ -31,6 +38,7 @@ const state: FlowState = {
   moduleCount: 8,
   totalPages: 60,
   moduleMode: "ai_suggested",
+  ebookType: "standard",
   modules: [],
   proposalSignature: "",
 };
@@ -77,6 +85,9 @@ function initCreateFlow(): void {
   document
     .querySelector("#back-after-fail")
     ?.addEventListener("click", () => setStep("modules"));
+  document
+    .querySelectorAll<HTMLInputElement>("input[name='ebook-type']")
+    .forEach((input) => input.addEventListener("change", renderSummary));
 
   moduleList.addEventListener("input", syncModulesFromDom);
   moduleList.addEventListener("change", syncModulesFromDom);
@@ -210,6 +221,7 @@ async function loadSettingsForSummary(): Promise<void> {
 
 async function handleGenerate(): Promise<void> {
   syncModulesFromDom();
+  syncEbookTypeFromDom();
   const validation = validateModules(state.modules, state.totalPages);
   if (!validation.ok) {
     setStep("modules");
@@ -223,6 +235,7 @@ async function handleGenerate(): Promise<void> {
     const created = await createEbook({
       topic: state.topic,
       module_mode: state.moduleMode,
+      ebook_type: state.ebookType,
       total_content_pages: state.totalPages,
       modules: state.modules.map((module, index) => ({
         ...module,
@@ -375,11 +388,14 @@ function renderSummary(): void {
     state.moduleMode === "ai_suggested"
       ? "IA propuso módulos"
       : "Usuario definió módulos";
+  syncEbookTypeFromDom();
+  const ebookTypeText = EBOOK_TYPE_LABELS[state.ebookType];
 
   summaryBox.innerHTML = `
     <div class="summary-meta">
       <div class="meta-card"><span>Tema</span><strong>${escapeHtml(state.topic)}</strong></div>
       <div class="meta-card"><span>Método</span><strong>${modeText}</strong></div>
+      <div class="meta-card"><span>Tipo de eBook</span><strong>${ebookTypeText}</strong></div>
       <div class="meta-card"><span>Páginas de contenido solicitadas</span><strong>${state.totalPages}</strong></div>
       <div class="meta-card"><span>Páginas adicionales automáticas</span><strong>portada, índice y cierre</strong></div>
       <div class="meta-card"><span>Módulos activos</span><strong>${activeCount}</strong></div>
@@ -398,6 +414,13 @@ function renderSummary(): void {
         .join("")}
     </ol>
   `;
+}
+
+function syncEbookTypeFromDom(): void {
+  const selected = document.querySelector<HTMLInputElement>(
+    "input[name='ebook-type']:checked",
+  );
+  state.ebookType = (selected?.value ?? "standard") as EbookType;
 }
 
 function setStep(step: FlowStep): void {

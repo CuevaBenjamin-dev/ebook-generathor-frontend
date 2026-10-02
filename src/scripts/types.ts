@@ -1,6 +1,45 @@
 export type ModuleMode = "ai_suggested" | "manual";
+export type EbookType =
+  | "standard"
+  | "teacher_training"
+  | "law"
+  | "public_management"
+  | "office"
+  | "health"
+  | "technology"
+  | "civil_engineering"
+  | "agronomy";
 export type EbookStatus = "draft" | "generating" | "completed" | "failed";
 export type JobStatus = "pending" | "running" | "completed" | "failed";
+
+export const EBOOK_TYPE_LABELS: Record<EbookType, string> = {
+  standard: "Estándar",
+  teacher_training: "Capacitación Docente",
+  law: "Derecho",
+  public_management: "Gestión Pública",
+  office: "Ofimática",
+  health: "Sector Salud",
+  technology: "Tecnología",
+  civil_engineering: "Ingeniería Civil",
+  agronomy: "Agronomía o Cultivos",
+};
+
+export const EBOOK_EXPORT_SUFFIXES: Record<Exclude<EbookType, "standard">, string> = {
+  teacher_training: "Capacitacion_Docente",
+  law: "Derecho",
+  public_management: "Gestion_Publica",
+  office: "Ofimatica",
+  health: "Sector_Salud",
+  technology: "Tecnologia",
+  civil_engineering: "Ingenieria_Civil",
+  agronomy: "Agronomia_Cultivos",
+};
+
+export function hasCollectionCover(
+  ebookType: EbookType,
+): ebookType is Exclude<EbookType, "standard"> {
+  return ebookType !== "standard";
+}
 
 export interface EbookModuleInput {
   position: number;
@@ -13,6 +52,7 @@ export interface EbookModuleInput {
 export interface EbookCreateInput {
   topic: string;
   module_mode: ModuleMode;
+  ebook_type: EbookType;
   total_content_pages: number;
   modules: EbookModuleInput[];
 }
@@ -46,6 +86,7 @@ export interface EbookListItem {
   topic: string;
   title?: string | null;
   status: EbookStatus;
+  ebook_type: EbookType;
   total_content_pages: number;
   active_modules: number;
   created_at: string;
@@ -71,7 +112,8 @@ export interface EbookPreviewResponse {
     topic: string;
     total_content_pages: number;
     status: EbookStatus;
+    ebook_type: EbookType;
+    cover_url?: string | null;
   };
   modules: EbookPreviewModule[];
 }
-

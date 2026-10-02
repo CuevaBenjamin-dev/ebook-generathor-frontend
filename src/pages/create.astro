@@ -67,6 +67,66 @@ import MainLayout from "../layouts/MainLayout.astro";
       <Card>
         <p class="eyebrow">Paso 3</p>
         <h2>Resumen antes de generar</h2>
+        <div class="ebook-type-selector">
+          <span class="field-label">Tipo de eBook</span>
+          <div class="radio-grid">
+            <RadioCard
+              name="ebook-type"
+              value="standard"
+              title="Crear E-Book estándar"
+              description="Conserva la carátula y el formato actual del generador."
+              checked={true}
+            />
+            <RadioCard
+              name="ebook-type"
+              value="teacher_training"
+              title="Crear E-Book Capacitación Docente"
+              description="Usa la carátula A4 violeta de la colección Capacitación Docente."
+            />
+            <RadioCard
+              name="ebook-type"
+              value="law"
+              title="Crear E-Book Derecho"
+              description="Usa una carátula profesional orientada a cursos y especializaciones jurídicas."
+            />
+            <RadioCard
+              name="ebook-type"
+              value="public_management"
+              title="Crear E-Book Gestión Pública"
+              description="Usa una carátula para formación en administración y gestión del sector público."
+            />
+            <RadioCard
+              name="ebook-type"
+              value="office"
+              title="Crear E-Book Ofimática"
+              description="Usa una carátula tecnológica para capacitación en herramientas de oficina."
+            />
+            <RadioCard
+              name="ebook-type"
+              value="health"
+              title="Crear E-Book Sector Salud"
+              description="Usa una carátula profesional para capacitación clínica, sanitaria o asistencial."
+            />
+            <RadioCard
+              name="ebook-type"
+              value="technology"
+              title="Crear E-Book Tecnología"
+              description="Usa una carátula para formación tecnológica, soporte, reparación o sistemas."
+            />
+            <RadioCard
+              name="ebook-type"
+              value="civil_engineering"
+              title="Crear E-Book para Ingenieros Civiles"
+              description="Usa una carátula especializada en obras, estructuras, planos y construcción."
+            />
+            <RadioCard
+              name="ebook-type"
+              value="agronomy"
+              title="Crear E-Book Agronomía o Cultivos"
+              description="Usa una carátula para capacitación agrícola, agronómica y productiva."
+            />
+          </div>
+        </div>
         <div id="summary-box" class="summary-grid"></div>
         <div id="settings-warning" class="notice is-hidden"></div>
         <div class="form-actions">
@@ -87,4 +147,3 @@ import MainLayout from "../layouts/MainLayout.astro";
 <script>
   import "../scripts/create-flow";
 </script>
-
